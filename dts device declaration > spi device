@@ -1,0 +1,78 @@
+dts device declaration > spi device
+
+接起來(接線)
+adb是什麼東西 android debug and bootloader mode for update data
+
+# 安裝 adb & fastboot
+sudo apt-get install android-tools-adb
+sudo  apt-get install android-tools-fastboot
+
+
+# insufficient permission for device
+adb stop-server
+sudo adb start-server
+
+# 觀察adb spi的 dts name(在odroidxu3資料夾下)，然後之後確認是哪一個
+cd ~/odroidxu3/linux/arch/arm/boot/dts/
+vim exynos5422-odroidxu3.dts
+/spi
+(spi_0: spi@12d20000, spi1: spi@12d30000)
+
+
+
+# 燒入kernel
+adb reboot fastboot
+sudo fastboot devices (顯示 Android 1.0.....)
+安裝kernel
+sudo fastboot flash kernel ~/odroidxu3/linux/arch/arm/boot/zImage-dtb 
+重開機
+sudo fastboot reboot
+查看是否燒成功
+adb shell
+cat /proc/version (顯示 gene_chen....)
+
+# 加入spi, 確認是否有加到kernel中
+adb shell 切換到android devices的shell
+查看 cd /sys/bus/spi ,ls
+查看 cd /sys/bus/i2c ,ls
+
+查看 /sys/bus/i2c/devices
+查看link /sys/bus/spi/devices (-al)裡的東西,是連接到哪裡
+ls -al /sys/bus/spi/devices/
+spi1.0 -> /sys/device/.... (12d30000.spi)
+
+查看該device裡的modalias
+cat modalias > spi:ioboard-spi
+
+===== dts devices declaration =====
+
+在android kernel　codebase下，
+關掉原本的spi@12d3000（設為disabled), 加入rt5734@0
+vim ~/odroidxu3/linux/arch/arm/boot/dts/exynos5422-odroidxu3.dts
+/spi
+
+rt5734@0 {
+    status = "okay";
+    compatible = "richtek,rt5734";
+    reg = <0>;
+    spi-max-frequency = <1000000>;
+    //spi-cpol;
+    //spi-cpha;
+    //spi-cs-high;
+
+    controller-data {
+        cs-gpio = <&gpa2 5 0>;
+        samsung,spi-feedback-delay = <0>;
+    };
+};
+
+
+不知道
+PATH=$PATH:/media/gene-chen/Data/CY_download/platform-tools
+>adb version
+Android Debug Bridge version 1.0.31
+
+
+
+
+

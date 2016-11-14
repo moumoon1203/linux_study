@@ -1,0 +1,39 @@
+===== write spi driver =====
+vim ~/odroidxu3/linux/drivers/regulator/rt5734-regulator.c
+
+===== adb mode =====
+cd /sys/bus/spi/devices/spi1.0
+ls -al
+觀察到driver link 改變為　rt5734
+
+
+編譯方式
+export CROSS_COMPILE=~/odroidxu3/arm-eabi-4.6/bin/arm-eabi-
+cd ~/odroidxu3/linux/
+make ARCH=arm -j4
+
+灌入android kernel
+adb reboot fastboot
+sudo fastboot flash kernel arch/arm/boot/zImage-dtb
+sudo fastboot reboot
+
+# putty 使用 (當機無法進入fastboot時，重灌kernel的方法)
+ls /dev/ttyUSB0 可查看現有的tty devices
+重新插拔 cat /var/log/syslog | grep -s "USB" 可以觀察是否重新插拔
+
+
+sudo putty
+ctrl+z 排入後台執行
+bg %1 放到全域執行緒(關掉terminal還可繼續執行)
+
+選擇 Serial
+Serial line : /dev/ttyS0 改為 /dev/ttyUSB0,
+Speed : 115200
+
+字體加大 Window>Fonts>Font used ordinary text : Change... > Droid Snas Mono
+Open
+輸入fastboot
+就可以在notebook terminal 使用 sudo fastboot flash kernel arch/arm/boot/zImage-dtb
+>sudo fastboot devices
+
+
